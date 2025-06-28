@@ -1,0 +1,58 @@
+{
+  "nodes": [
+    {
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "parameters": {
+        "mode": "everyHour"
+      },
+      "typeVersion": 1,
+      "position": [50, 200]
+    },
+    {
+      "name": "Download FTP file",
+      "type": "n8n-nodes-base.ftp",
+      "parameters": {
+        "operation": "download",
+        "path": "/remote/data.xlsx",
+        "binaryPropertyName": "file"
+      },
+      "credentials": { "ftp": { "id": "1", "name": "FTP creds" } },
+      "typeVersion": 1,
+      "position": [250, 200]
+    },
+    {
+      "name": "Extract Excel",
+      "type": "n8n-nodes-base.extractFromFile",
+      "parameters": {
+        "fileFormat": "xlsx",
+        "dataPropertyName": "file",
+        "options": { "headerRow": true }
+      },
+      "typeVersion": 1,
+      "position": [450, 200]
+    },
+    {
+      "name": "Insert into DB",
+      "type": "n8n-nodes-base.mySql",
+      "parameters": {
+        "operation": "insert",
+        "table": "your_table",
+        "columns": ["col1", "col2", "col3"],
+        "values": [
+          "={{$json[\"Column A\"]}}",
+          "={{$json[\"Column B\"]}}",
+          "={{$json[\"Column C\"]}}"
+        ]
+      },
+      "credentials": { "mySql": { "id": "2", "name": "MySQL creds" } },
+      "typeVersion": 1,
+      "position": [650, 200]
+    }
+  ],
+  "connections": {
+    "Cron": { "main": [[{ "node": "Download FTP file", "type": "main", "index": 0 }]] },
+    "Download FTP file": { "main": [[{ "node": "Extract Excel", "type": "main", "index": 0 }]] },
+    "Extract Excel": { "main": [[{ "node": "Insert into DB", "type": "main", "index": 0 }]] }
+  }
+}
